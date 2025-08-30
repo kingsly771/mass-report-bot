@@ -4,36 +4,49 @@ const nodemailer = require('nodemailer');
 class TempMailProviders {
     constructor() {
         this.providers = this.initializeProviders();
+        this.smtpTransporter = this.createSMTPTransporter();
+    }
+
+    createSMTPTransporter() {
+        return nodemailer.createTransporter({
+            service: 'gmail',
+            auth: {
+                user: process.env.SMTP_EMAIL,
+                pass: process.env.SMTP_PASSWORD
+            },
+            pool: true,
+            maxConnections: 5,
+            maxMessages: 100
+        });
     }
 
     initializeProviders() {
         return [
-            // Disposable email services with SMTP
             {
-                name: 'Mailinator',
+                name: 'Gmail-SMTP',
                 getEmail: () => {
                     const random = Math.random().toString(36).substring(2, 10);
-                    return `${random}@mailinator.com`;
+                    return `${random}@gmail.com`; // Use Gmail for better delivery
                 },
                 sendEmail: async (from, to, subject, text) => {
                     return await this.sendViaSMTP(from, to, subject, text);
                 }
             },
             {
-                name: 'TempMail',
+                name: 'Outlook-SMTP',
                 getEmail: () => {
                     const random = Math.random().toString(36).substring(2, 10);
-                    return `${random}@tempmail.com`;
+                    return `${random}@outlook.com`;
                 },
                 sendEmail: async (from, to, subject, text) => {
                     return await this.sendViaSMTP(from, to, subject, text);
                 }
             },
             {
-                name: 'Disposable',
+                name: 'Yahoo-SMTP',
                 getEmail: () => {
                     const random = Math.random().toString(36).substring(2, 10);
-                    return `${random}@disposable.com`;
+                    return `${random}@yahoo.com`;
                 },
                 sendEmail: async (from, to, subject, text) => {
                     return await this.sendViaSMTP(from, to, subject, text);
@@ -44,9 +57,40 @@ class TempMailProviders {
 
     async sendViaSMTP(from, to, subject, text) {
         try {
-            // Create SMTP transporter (using Gmail as relay)
-            const transporter = nodemailer.createTransporter({
-                service: 'gmail',
+            const mailOptions = {
+                from: from,
+                to: to,
+                subject: subject,
+                text: text,
+                headers: {
+                    'X-Mailer': 'WhatsApp Mass Reporter',
+                    'X-Priority': '1', // High priority
+                    'Importance': 'high'
+                }
+            };
+
+            const result = await this.smtpTransporter.sendMail(mailOptions);
+            
+            return {
+                success: true,
+                message: `Email delivered: ${result.messageId}`,
+                provider: 'SMTP'
+            };
+        } catch (error) {
+            console.error('SMTP Error:', error.message);
+            
+            // Retry with different approach
+            return await this.retrySendEmail(from, to, subject, text, error);
+        }
+    }
+
+    async retrySendEmail(from, to, subject, text, originalError) {
+        try {
+            // Alternative approach: Use different SMTP configuration
+            const backupTransporter = nodemailer.createTransporter({
+                host: 'smtp.gmail.com',
+                port: 587,
+                secure: false,
                 auth: {
                     user: process.env.SMTP_EMAIL,
                     pass: process.env.SMTP_PASSWORD
@@ -57,23 +101,22 @@ class TempMailProviders {
                 from: from,
                 to: to,
                 subject: subject,
-                text: text,
-                headers: {
-                    'X-Mailer': 'WhatsApp Mass Reporter Bot'
-                }
+                text: text
             };
 
-            const result = await transporter.sendMail(mailOptions);
+            const result = await backupTransporter.sendMail(mailOptions);
+            
             return {
                 success: true,
-                message: `Email sent via SMTP: ${result.messageId}`,
-                provider: 'SMTP'
+                message: `Email delivered (retry): ${result.messageId}`,
+                provider: 'SMTP-Retry'
             };
-        } catch (error) {
+        } catch (retryError) {
             return {
                 success: false,
-                message: `SMTP Error: ${error.message}`,
-                provider: 'SMTP'
+                message: `Failed after retry: ${retryError.message}`,
+                provider: 'SMTP',
+                originalError: originalError.message
             };
         }
     }
@@ -99,6 +142,7 @@ class TempMailProviders {
                 timestamp: new Date()
             };
         } catch (error) {
+            console.error('Provider error:', error);
             return {
                 success: false,
                 message: `Provider error: ${error.message}`,
