@@ -4,20 +4,28 @@ const nodemailer = require('nodemailer');
 class TempMailProviders {
     constructor() {
         this.providers = this.initializeProviders();
-        this.smtpTransporter = this.createSMTPTransporter();
+        this.smtpTransporter = this.createSMTPTransport();
     }
 
-    createSMTPTransporter() {
-        return nodemailer.createTransporter({
-            service: 'gmail',
-            auth: {
-                user: process.env.SMTP_EMAIL,
-                pass: process.env.SMTP_PASSWORD
-            },
-            pool: true,
-            maxConnections: 5,
-            maxMessages: 100
-        });
+    createSMTPTransport() {
+        try {
+            return nodemailer.createTransport({
+                service: process.env.SMTP_SERVICE || 'gmail',
+                host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                port: parseInt(process.env.SMTP_PORT) || 587,
+                secure: process.env.SMTP_SECURE === 'true' || false,
+                auth: {
+                    user: process.env.SMTP_EMAIL,
+                    pass: process.env.SMTP_PASSWORD
+                },
+                pool: true,
+                maxConnections: 5,
+                maxMessages: 100
+            });
+        } catch (error) {
+            console.error('❌ Failed to create SMTP transport:', error.message);
+            return null;
+        }
     }
 
     initializeProviders() {
@@ -26,7 +34,7 @@ class TempMailProviders {
                 name: 'Gmail-SMTP',
                 getEmail: () => {
                     const random = Math.random().toString(36).substring(2, 10);
-                    return `${random}@gmail.com`; // Use Gmail for better delivery
+                    return `${random}@gmail.com`;
                 },
                 sendEmail: async (from, to, subject, text) => {
                     return await this.sendViaSMTP(from, to, subject, text);
@@ -51,21 +59,38 @@ class TempMailProviders {
                 sendEmail: async (from, to, subject, text) => {
                     return await this.sendViaSMTP(from, to, subject, text);
                 }
+            },
+            {
+                name: 'Custom-SMTP',
+                getEmail: () => {
+                    const random = Math.random().toString(36).substring(2, 10);
+                    const domains = ['tempmail.com', 'disposable.com', 'mailinator.com'];
+                    const domain = domains[Math.floor(Math.random() * domains.length)];
+                    return `${random}@${domain}`;
+                },
+                sendEmail: async (from, to, subject, text) => {
+                    return await this.sendViaSMTP(from, to, subject, text);
+                }
             }
         ];
     }
 
     async sendViaSMTP(from, to, subject, text) {
         try {
+            if (!this.smtpTransporter) {
+                throw new Error('SMTP transporter not initialized');
+            }
+
             const mailOptions = {
                 from: from,
                 to: to,
                 subject: subject,
                 text: text,
                 headers: {
-                    'X-Mailer': 'WhatsApp Mass Reporter',
-                    'X-Priority': '1', // High priority
-                    'Importance': 'high'
+                    'X-Mailer': process.env.EMAIL_X_MAILER || 'WhatsApp Mass Reporter Bot',
+                    'X-Priority': '1',
+                    'Importance': 'high',
+                    'Priority': 'urgent'
                 }
             };
 
@@ -77,23 +102,26 @@ class TempMailProviders {
                 provider: 'SMTP'
             };
         } catch (error) {
-            console.error('SMTP Error:', error.message);
+            console.error('❌ SMTP Error:', error.message);
             
-            // Retry with different approach
-            return await this.retrySendEmail(from, to, subject, text, error);
+            // Fallback: try direct SMTP connection
+            return await this.fallbackSMTP(from, to, subject, text, error);
         }
     }
 
-    async retrySendEmail(from, to, subject, text, originalError) {
+    async fallbackSMTP(from, to, subject, text, originalError) {
         try {
-            // Alternative approach: Use different SMTP configuration
-            const backupTransporter = nodemailer.createTransporter({
-                host: 'smtp.gmail.com',
-                port: 587,
+            // Create a new transport for fallback
+            const fallbackTransporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                port: parseInt(process.env.SMTP_PORT) || 587,
                 secure: false,
                 auth: {
                     user: process.env.SMTP_EMAIL,
                     pass: process.env.SMTP_PASSWORD
+                },
+                tls: {
+                    rejectUnauthorized: false
                 }
             });
 
@@ -104,17 +132,22 @@ class TempMailProviders {
                 text: text
             };
 
-            const result = await backupTransporter.sendMail(mailOptions);
+            const result = await fallbackTransporter.sendMail(mailOptions);
+            
+            // Close the fallback transporter
+            fallbackTransporter.close();
             
             return {
                 success: true,
-                message: `Email delivered (retry): ${result.messageId}`,
-                provider: 'SMTP-Retry'
+                message: `Email delivered (fallback): ${result.messageId}`,
+                provider: 'SMTP-Fallback'
             };
-        } catch (retryError) {
+        } catch (fallbackError) {
+            console.error('❌ Fallback SMTP also failed:', fallbackError.message);
+            
             return {
                 success: false,
-                message: `Failed after retry: ${retryError.message}`,
+                message: `Failed after fallback: ${fallbackError.message}`,
                 provider: 'SMTP',
                 originalError: originalError.message
             };
@@ -122,12 +155,22 @@ class TempMailProviders {
     }
 
     async getRandomEmail() {
-        const provider = this.providers[Math.floor(Math.random() * this.providers.length)];
-        const email = await provider.getEmail();
-        return {
-            email,
-            provider: provider.name
-        };
+        try {
+            const provider = this.providers[Math.floor(Math.random() * this.providers.length)];
+            const email = await provider.getEmail();
+            return {
+                email,
+                provider: provider.name
+            };
+        } catch (error) {
+            console.error('Error generating random email:', error);
+            // Fallback email generation
+            const random = Math.random().toString(36).substring(2, 10);
+            return {
+                email: `${random}@fallback.com`,
+                provider: 'Fallback'
+            };
+        }
     }
 
     async sendEmail(fromEmail, toEmail, subject, message) {
@@ -142,7 +185,7 @@ class TempMailProviders {
                 timestamp: new Date()
             };
         } catch (error) {
-            console.error('Provider error:', error);
+            console.error('❌ Provider error:', error);
             return {
                 success: false,
                 message: `Provider error: ${error.message}`,
@@ -151,6 +194,28 @@ class TempMailProviders {
                 to: toEmail,
                 timestamp: new Date()
             };
+        }
+    }
+
+    // Verify SMTP connection
+    async verifySMTP() {
+        try {
+            if (!this.smtpTransporter) {
+                return { success: false, message: 'SMTP transporter not initialized' };
+            }
+            
+            await this.smtpTransporter.verify();
+            return { success: true, message: 'SMTP connection verified' };
+        } catch (error) {
+            return { success: false, message: `SMTP verification failed: ${error.message}` };
+        }
+    }
+
+    // Close SMTP connection
+    close() {
+        if (this.smtpTransporter) {
+            this.smtpTransporter.close();
+            console.log('SMTP transporter closed');
         }
     }
 }
