@@ -1,11 +1,13 @@
 {
   "name": "whatsapp-mass-reporter",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Telegram bot for mass reporting WhatsApp numbers",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "node test-smtp.js",
+    "setup": "npm install && node setup.js"
   },
   "dependencies": {
     "node-telegram-bot-api": "^0.64.0",
@@ -17,5 +19,15 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
-  }
+  },
+  "keywords": [
+    "whatsapp",
+    "telegram",
+    "bot",
+    "report",
+    "mass",
+    "email"
+  ],
+  "author": "GODRICK YESEH",
+  "license": "MIT"
 }
