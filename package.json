@@ -1,13 +1,51 @@
 {
   "name": "whatsapp-mass-reporter",
   "version": "2.0.0",
-  "description": "Telegram bot for mass reporting WhatsApp numbers",
+  "description": "Telegram bot for mass reporting WhatsApp numbers to official support",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "node test-smtp.js",
-    "setup": "npm install && node setup.js"
+    "setup": "node setup.js",
+    "test:email": "node test-email.js",
+    "test:config": "node -e \"require('./config'); console.log('✅ Config validation passed');\"",
+    "test:bot": "node test-bot.js",
+    "install-deps": "npm install",
+    "clean": "rm -rf node_modules package-lock.json && npm install",
+    "lint": "eslint . --ext .js",
+    "backup": "node scripts/backup.js",
+    "stats": "node scripts/stats.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "telegram",
+    "bot",
+    "report",
+    "mass",
+    "email",
+    "automation",
+    "reporter",
+    "support",
+    "abuse",
+    "spam"
+  ],
+  "author": {
+    "name": "WhatsApp Mass Reporter",
+    "email": "support@whatsapp-reporter.com",
+    "url": "https://github.com/yourusername/whatsapp-mass-reporter"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/whatsapp-mass-reporter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/whatsapp-mass-reporter/issues"
+  },
+  "homepage": "https://github.com/yourusername/whatsapp-mass-reporter#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
   },
   "dependencies": {
     "node-telegram-bot-api": "^0.64.0",
@@ -18,16 +56,26 @@
     "nodemailer": "^6.9.7"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "eslint": "^8.0.0"
   },
-  "keywords": [
-    "whatsapp",
-    "telegram",
-    "bot",
-    "report",
-    "mass",
-    "email"
+  "optionalDependencies": {
+    "winston": "^3.10.0"
+  },
+  "files": [
+    "index.js",
+    "config.js",
+    "services/",
+    "providers/",
+    "templates/",
+    "utils/",
+    "scripts/",
+    "README.md",
+    "LICENSE"
   ],
-  "author": "GODRICK YESEH",
-  "license": "MIT"
+  "config": {
+    "max_reports_per_session": 50,
+    "max_reports_per_hour": 100,
+    "email_delay_ms": 3000
+  }
 }
