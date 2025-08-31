@@ -1,4 +1,5 @@
-#WhatsApp Mass Reporter Bot 🤖
+#*WhatsApp Mass Reporter Bot 🤖*
+
 A powerful Telegram bot that automatically sends mass reports to WhatsApp support using professional email templates. Send 10-50 reports per session with different email variations to increase visibility and priority.
 
 https://img.shields.io/badge/WhatsApp-Mass%2520Reporter-brightgreen
@@ -273,9 +274,7 @@ Test email functionality with npm run test:email
 
 For bugs or feature requests, please open an issue on GitHub.
 
-⭐ If this project helped you, please give it a star on GitHub!
-
-This README was generated for WhatsApp Mass Reporter Bot v2.0
-
-This response is AI-generated, for reference only.
+⭐ If this project helped you, please give it a star on Github 
+WhatsApp Mass Reporter Bot v2.0
+By *KINGSLEY771*
 
