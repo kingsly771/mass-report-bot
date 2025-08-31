@@ -36,8 +36,8 @@ Google App Password (required)
 1. Installation
 bash
 # Clone the repository
-git clone https://github.com/yourusername/whatsapp-mass-reporter.git
-cd whatsapp-mass-reporter
+git clone https://github.com/kingsley771/mass-report-bot.git
+cd mass-report-bot
 
 # Run automated setup
 npm run setup
