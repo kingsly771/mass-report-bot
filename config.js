@@ -1,54 +1,54 @@
 require('dotenv').config();
 
-module.exports = {
-    // Telegram Bot Configuration
+const config = {
+    // ==================== TELEGRAM CONFIGURATION ====================
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '',
     ADMIN_USER_ID: process.env.ADMIN_USER_ID ? parseInt(process.env.ADMIN_USER_ID) : null,
     
-    // WhatsApp Support Configuration
+    // ==================== WHATSAPP SUPPORT EMAILS ====================
     WHATSAPP_SUPPORT_EMAIL: process.env.WHATSAPP_SUPPORT_EMAIL || 'support@support.whatsapp.com',
     WHATSAPP_ABUSE_EMAIL: process.env.WHATSAPP_ABUSE_EMAIL || 'abuse@whatsapp.com',
     WHATSAPP_ANDROID_SUPPORT: process.env.WHATSAPP_ANDROID_SUPPORT || 'android@support.whatsapp.com',
     WHATSAPP_IOS_SUPPORT: process.env.WHATSAPP_IOS_SUPPORT || 'ios@support.whatsapp.com',
     
-    // Mass Reporting Limits
+    // ==================== MASS REPORTING LIMITS ====================
     MIN_REPORTS_PER_SESSION: parseInt(process.env.MIN_REPORTS_PER_SESSION) || 10,
-    MAX_REPORTS_PER_SESSION: parseInt(process.env.MAX_REPORTS_PER_SESSION) || 100,
-    MAX_REPORTS_PER_HOUR: parseInt(process.env.MAX_REPORTS_PER_HOUR) || 200,
-    MAX_REPORTS_PER_DAY: parseInt(process.env.MAX_REPORTS_PER_DAY) || 1000,
+    MAX_REPORTS_PER_SESSION: parseInt(process.env.MAX_REPORTS_PER_SESSION) || 50,
+    MAX_REPORTS_PER_HOUR: parseInt(process.env.MAX_REPORTS_PER_HOUR) || 100,
+    MAX_REPORTS_PER_DAY: parseInt(process.env.MAX_REPORTS_PER_DAY) || 500,
     REPORT_COOLDOWN: parseInt(process.env.REPORT_COOLDOWN) || 3600000, // 1 hour in milliseconds
     
-    // Email Sending Configuration
-    EMAIL_SEND_DELAY: parseInt(process.env.EMAIL_SEND_DELAY) || 2000, // 2 seconds between emails
+    // ==================== EMAIL SENDING CONFIGURATION ====================
+    EMAIL_SEND_DELAY: parseInt(process.env.EMAIL_SEND_DELAY) || 3000, // 3 seconds between emails
     MAX_EMAIL_ATTEMPTS: parseInt(process.env.MAX_EMAIL_ATTEMPTS) || 3, // Retry failed emails up to 3 times
-    EMAIL_RETRY_DELAY: parseInt(process.env.EMAIL_RETRY_DELAY) || 5000, // 5 seconds between retries
-    EMAIL_BATCH_SIZE: parseInt(process.env.EMAIL_BATCH_SIZE) || 10, // Process emails in batches
+    EMAIL_RETRY_DELAY: parseInt(process.env.EMAIL_RETRY_DELAY) || 10000, // 10 seconds between retries
+    EMAIL_BATCH_SIZE: parseInt(process.env.EMAIL_BATCH_SIZE) || 5, // Process emails in batches of 5
     
-    // SMTP Configuration (for actual email sending)
-    SMTP_ENABLED: process.env.SMTP_ENABLED === 'true' || false,
+    // ==================== SMTP CONFIGURATION (REQUIRED) ====================
+    SMTP_ENABLED: process.env.SMTP_ENABLED !== 'false', // Default true
     SMTP_SERVICE: process.env.SMTP_SERVICE || 'gmail',
     SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
     SMTP_PORT: parseInt(process.env.SMTP_PORT) || 587,
-    SMTP_SECURE: process.env.SMTP_SECURE === 'true' || false,
+    SMTP_SECURE: process.env.SMTP_SECURE === 'true', // Default false
     SMTP_EMAIL: process.env.SMTP_EMAIL || '',
     SMTP_PASSWORD: process.env.SMTP_PASSWORD || '',
     
-    // Email Content Configuration
-    EMAIL_PRIORITY: process.env.EMAIL_PRIORITY || 'high', // high, normal, low
-    EMAIL_IMPORTANCE: process.env.EMAIL_IMPORTANCE || 'high', // high, normal, low
+    // ==================== EMAIL HEADERS & CONTENT ====================
+    EMAIL_PRIORITY: process.env.EMAIL_PRIORITY || 'high',
+    EMAIL_IMPORTANCE: process.env.EMAIL_IMPORTANCE || 'high',
     EMAIL_X_MAILER: process.env.EMAIL_X_MAILER || 'WhatsApp Mass Reporter Bot v2.0',
     
-    // Rate Limiting and Safety
+    // ==================== RATE LIMITING & SAFETY ====================
     USER_COOLDOWN_PERIOD: parseInt(process.env.USER_COOLDOWN_PERIOD) || 300000, // 5 minutes between user sessions
-    MAX_CONCURRENT_SESSIONS: parseInt(process.env.MAX_CONCURRENT_SESSIONS) || 5,
-    IP_RATE_LIMIT: parseInt(process.env.IP_RATE_LIMIT) || 50, // Max requests per IP per hour
+    MAX_CONCURRENT_SESSIONS: parseInt(process.env.MAX_CONCURRENT_SESSIONS) || 3,
+    IP_RATE_LIMIT: parseInt(process.env.IP_RATE_LIMIT) || 30, // Max requests per IP per hour
     
-    // Monitoring and Logging
+    // ==================== MONITORING & LOGGING ====================
     LOG_LEVEL: process.env.LOG_LEVEL || 'info', // error, warn, info, debug
-    SAVE_REPORTS_LOCALLY: process.env.SAVE_REPORTS_LOCALLY === 'true' || false,
+    SAVE_REPORTS_LOCALLY: process.env.SAVE_REPORTS_LOCALLY === 'true', // Default false
     REPORT_BACKUP_DIR: process.env.REPORT_BACKUP_DIR || './reports_backup',
     
-    // WhatsApp Report Categories
+    // ==================== WHATSAPP REPORT CATEGORIES ====================
     REPORT_CATEGORIES: [
         'Spam',
         'Harassment',
@@ -62,7 +62,7 @@ module.exports = {
         'Other'
     ],
     
-    // Category Severity Levels
+    // ==================== CATEGORY SEVERITY LEVELS ====================
     CATEGORY_SEVERITY: {
         'Spam': 'medium',
         'Harassment': 'high',
@@ -76,15 +76,7 @@ module.exports = {
         'Other': 'low'
     },
     
-    // Response Templates
-    RESPONSE_TEMPLATES: {
-        WELCOME: `🚨 *WhatsApp Mass Reporter Bot* 🚨`,
-        HELP: `🆘 *Mass Report Help Guide*`,
-        RATE_LIMIT: `❌ *Rate Limit Exceeded*`,
-        SUCCESS: `✅ *Report Sent Successfully*`
-    },
-    
-    // Validation Rules
+    // ==================== VALIDATION RULES ====================
     VALIDATION: {
         PHONE_NUMBER_MIN_LENGTH: 8,
         PHONE_NUMBER_MAX_LENGTH: 15,
@@ -93,7 +85,7 @@ module.exports = {
         CONTACT_MAX_LENGTH: 100
     },
     
-    // System Settings
+    // ==================== SYSTEM SETTINGS ====================
     SYSTEM: {
         CLEANUP_INTERVAL: 3600000, // 1 hour
         BACKUP_INTERVAL: 86400000, // 24 hours
@@ -101,46 +93,45 @@ module.exports = {
         RETRY_QUEUE_CHECK: 30000 // 30 seconds
     },
     
-    // Feature Flags
+    // ==================== FEATURE FLAGS ====================
     FEATURES: {
-        ENABLE_RETRY_SYSTEM: true,
-        ENABLE_EMAIL_VERIFICATION: false,
-        ENABLE_CAPTCHA: false,
-        ENABLE_IP_BLOCKING: true,
-        ENABLE_USER_BLOCKING: true
+        ENABLE_RETRY_SYSTEM: process.env.ENABLE_RETRY_SYSTEM !== 'false', // Default true
+        ENABLE_EMAIL_VERIFICATION: process.env.ENABLE_EMAIL_VERIFICATION === 'true', // Default false
+        ENABLE_CAPTCHA: process.env.ENABLE_CAPTCHA === 'true', // Default false
+        ENABLE_IP_BLOCKING: process.env.ENABLE_IP_BLOCKING !== 'false', // Default true
+        ENABLE_USER_BLOCKING: process.env.ENABLE_USER_BLOCKING !== 'false' // Default true
     },
     
-    // Security Settings
+    // ==================== SECURITY SETTINGS ====================
     SECURITY: {
-        MAX_LOGIN_ATTEMPTS: 5,
-        BLOCK_DURATION: 3600000, // 1 hour
-        ALLOWED_COUNTRIES: ['US', 'UK', 'CA', 'AU', 'DE', 'FR'], // Empty array for all countries
-        BLOCKED_IPS: [] // Add IPs to block manually
+        MAX_LOGIN_ATTEMPTS: parseInt(process.env.MAX_LOGIN_ATTEMPTS) || 5,
+        BLOCK_DURATION: parseInt(process.env.BLOCK_DURATION) || 3600000, // 1 hour
+        ALLOWED_COUNTRIES: process.env.ALLOWED_COUNTRIES ? 
+            process.env.ALLOWED_COUNTRIES.split(',').map(c => c.trim().toUpperCase()) : [],
+        BLOCKED_IPS: process.env.BLOCKED_IPS ? 
+            process.env.BLOCKED_IPS.split(',').map(ip => ip.trim()) : []
     }
 };
 
-// Environment validation
-if (!module.exports.TELEGRAM_BOT_TOKEN) {
-    console.warn('⚠️  TELEGRAM_BOT_TOKEN is not set in environment variables');
-}
-
-if (module.exports.SMTP_ENABLED && (!module.exports.SMTP_EMAIL || !module.exports.SMTP_PASSWORD)) {
-    console.warn('⚠️  SMTP is enabled but credentials are not fully configured');
-}
-
-// Export validation function
-module.exports.validateConfig = function() {
+// ==================== VALIDATION FUNCTIONS ====================
+config.validateConfig = function() {
     const errors = [];
     
+    // Required fields validation
     if (!this.TELEGRAM_BOT_TOKEN) {
         errors.push('TELEGRAM_BOT_TOKEN is required');
     }
     
     if (this.SMTP_ENABLED) {
-        if (!this.SMTP_EMAIL) errors.push('SMTP_EMAIL is required when SMTP_ENABLED is true');
-        if (!this.SMTP_PASSWORD) errors.push('SMTP_PASSWORD is required when SMTP_ENABLED is true');
+        if (!this.SMTP_EMAIL) {
+            errors.push('SMTP_EMAIL is required when SMTP is enabled');
+        }
+        if (!this.SMTP_PASSWORD) {
+            errors.push('SMTP_PASSWORD is required when SMTP is enabled');
+        }
     }
     
+    // Limits validation
     if (this.MIN_REPORTS_PER_SESSION > this.MAX_REPORTS_PER_SESSION) {
         errors.push('MIN_REPORTS_PER_SESSION cannot be greater than MAX_REPORTS_PER_SESSION');
     }
@@ -149,22 +140,27 @@ module.exports.validateConfig = function() {
         errors.push('MAX_REPORTS_PER_SESSION cannot be greater than MAX_REPORTS_PER_HOUR');
     }
     
+    if (this.MAX_REPORTS_PER_HOUR > this.MAX_REPORTS_PER_DAY) {
+        errors.push('MAX_REPORTS_PER_HOUR cannot be greater than MAX_REPORTS_PER_DAY');
+    }
+    
+    // SMTP validation
+    if (this.SMTP_ENABLED) {
+        const validPorts = [25, 465, 587, 2525];
+        if (!validPorts.includes(this.SMTP_PORT)) {
+            errors.push(`SMTP_PORT must be one of: ${validPorts.join(', ')}`);
+        }
+    }
+    
     return errors;
 };
 
-// Helper function to get category severity
-module.exports.getCategorySeverity = function(category) {
+// ==================== HELPER FUNCTIONS ====================
+config.getCategorySeverity = function(category) {
     return this.CATEGORY_SEVERITY[category] || 'medium';
 };
 
-// Helper function to check if country is allowed
-module.exports.isCountryAllowed = function(countryCode) {
-    if (this.SECURITY.ALLOWED_COUNTRIES.length === 0) return true;
-    return this.SECURITY.ALLOWED_COUNTRIES.includes(countryCode.toUpperCase());
-};
-
-// Helper function to get WhatsApp email based on category severity
-module.exports.getWhatsAppEmailBySeverity = function(severity) {
+config.getWhatsAppEmailBySeverity = function(severity) {
     switch (severity) {
         case 'critical':
             return this.WHATSAPP_ABUSE_EMAIL;
@@ -174,3 +170,62 @@ module.exports.getWhatsAppEmailBySeverity = function(severity) {
             return this.WHATSAPP_SUPPORT_EMAIL;
     }
 };
+
+config.isCountryAllowed = function(countryCode) {
+    if (this.SECURITY.ALLOWED_COUNTRIES.length === 0) return true;
+    return this.SECURITY.ALLOWED_COUNTRIES.includes(countryCode.toUpperCase());
+};
+
+config.isIpBlocked = function(ip) {
+    return this.SECURITY.BLOCKED_IPS.includes(ip);
+};
+
+config.getSmtpConfig = function() {
+    return {
+        service: this.SMTP_SERVICE,
+        host: this.SMTP_HOST,
+        port: this.SMTP_PORT,
+        secure: this.SMTP_SECURE,
+        auth: {
+            user: this.SMTP_EMAIL,
+            pass: this.SMTP_PASSWORD
+        }
+    };
+};
+
+// ==================== LOGGING CONFIGURATION ====================
+config.getLoggerConfig = function() {
+    return {
+        level: this.LOG_LEVEL,
+        saveReports: this.SAVE_REPORTS_LOCALLY,
+        backupDir: this.REPORT_BACKUP_DIR
+    };
+};
+
+// ==================== RATE LIMIT CONFIGURATION ====================
+config.getRateLimitConfig = function() {
+    return {
+        userCooldown: this.USER_COOLDOWN_PERIOD,
+        maxSessions: this.MAX_CONCURRENT_SESSIONS,
+        ipLimit: this.IP_RATE_LIMIT
+    };
+};
+
+// ==================== VALIDATE ON LOAD ====================
+const validationErrors = config.validateConfig();
+if (validationErrors.length > 0) {
+    console.error('❌ Configuration errors:');
+    validationErrors.forEach(error => console.error('   -', error));
+    
+    if (!config.TELEGRAM_BOT_TOKEN) {
+        console.error('\n💡 Get TELEGRAM_BOT_TOKEN from @BotFather on Telegram');
+    }
+    
+    if (config.SMTP_ENABLED && (!config.SMTP_EMAIL || !config.SMTP_PASSWORD)) {
+        console.error('\n💡 Configure SMTP_EMAIL and SMTP_PASSWORD in your .env file');
+        console.error('   For Gmail, use App Password (not your regular password)');
+    }
+}
+
+// ==================== EXPORT CONFIG ====================
+module.exports = config;
