@@ -1,4 +1,4 @@
-#*WhatsApp Mass Reporter Bot 🤖*
+# *WhatsApp Mass Reporter Bot 🤖*
 
 A powerful Telegram bot that automatically sends mass reports to WhatsApp support using professional email templates. Send 10-50 reports per session with different email variations to increase visibility and priority.
 
@@ -36,8 +36,8 @@ Google App Password (required)
 1. Installation
 bash
 # Clone the repository
-git clone https://github.com/kingsley771/mass-report-bot.git
-cd mass-report-bot
+https://github.com/kingsly771/whatsapp-report-bot
+cd whatsapp-report-bot
 
 # Run automated setup
 npm run setup
@@ -259,7 +259,7 @@ Open a Pull Request
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ⚠️ Disclaimer
-This bot is designed for legitimate reporting of WhatsApp policy violations. The developers are not responsible for misuse of this tool. Users are responsible for complying with WhatsApp's Terms of Service and applicable laws.
+This bot is designed for legitimate reporting of WhatsApp policy violations. I am not responsible for misuse of this tool. Users are responsible for complying with WhatsApp's Terms of Service and applicable laws.
 
 🆘 Support
 If you need help:
