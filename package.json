@@ -37,12 +37,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/whatsapp-mass-reporter.git"
+    "url": "https://github.com/kingsly771/whatsapp-mass-reporter.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/whatsapp-mass-reporter/issues"
+    "url": "https://github.com/kingsly771/whatsapp-mass-reporter/issues"
   },
-  "homepage": "https://github.com/yourusername/whatsapp-mass-reporter#readme",
+  "homepage": "https://github.com/kingsly771/whatsapp-mass-reporter#readme",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=7.0.0"
