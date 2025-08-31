@@ -1,10 +1,10 @@
-const TempMailProviders = require('../providers/temp-mail-providers');
+const RealEmailProvider = require('../providers/real-email-provider');
 const { v4: uuidv4 } = require('uuid');
 const config = require('../config');
 
 class EmailService {
     constructor() {
-        this.tempMail = new TempMailProviders();
+        this.emailProvider = new RealEmailProvider();
         this.sentEmails = new Map();
         this.sentCount = 0;
         this.failedEmails = new Map();
@@ -12,20 +12,15 @@ class EmailService {
         // Start retry processor
         setInterval(() => {
             this.processRetryQueue();
-        }, 30000); // Check every 30 seconds
+        }, 30000);
     }
 
     async sendWhatsAppReport(reportData, attempt = 1) {
         const { content, subject, email: recipientEmail } = reportData;
         
         try {
-            // Generate temporary email
-            const tempEmailInfo = await this.tempMail.getRandomEmail();
-            const fromEmail = tempEmailInfo.email;
-
-            // Send the email with retry logic
-            const sendResult = await this.tempMail.sendEmail(
-                fromEmail,
+            // Send the email using real SMTP
+            const sendResult = await this.emailProvider.sendEmail(
                 recipientEmail,
                 subject,
                 content
@@ -35,11 +30,9 @@ class EmailService {
             const emailId = uuidv4();
             const emailRecord = {
                 id: emailId,
-                from: fromEmail,
                 to: recipientEmail,
                 subject,
                 timestamp: new Date(),
-                provider: tempEmailInfo.provider,
                 sendResult,
                 reportData: {
                     phoneNumber: reportData.phoneNumber,
@@ -56,7 +49,6 @@ class EmailService {
                 this.queueForRetry(reportData, attempt + 1);
             }
 
-            // Clean up old records
             this.cleanupOldRecords();
 
             return emailRecord;
@@ -64,16 +56,53 @@ class EmailService {
         } catch (error) {
             console.error('Email sending error:', error);
             
-            // Queue for retry
             if (attempt < config.MAX_EMAIL_ATTEMPTS) {
                 this.queueForRetry(reportData, attempt + 1);
             }
 
             return {
                 success: false,
-                message: `Initial error: ${error.message}`,
+                message: `Error: ${error.message}`,
                 attempt: attempt
             };
+        }
+    }
+
+    async sendMultipleReports(reportData, count) {
+        const { content, subject, email: recipientEmail } = reportData;
+        
+        try {
+            const results = await this.emailProvider.sendMultipleEmails(
+                recipientEmail,
+                subject,
+                content,
+                count
+            );
+
+            // Store all results
+            results.forEach((result, index) => {
+                const emailId = uuidv4();
+                const emailRecord = {
+                    id: emailId,
+                    to: recipientEmail,
+                    subject: `${subject} - Report ${index + 1}`,
+                    timestamp: new Date(),
+                    sendResult: result,
+                    reportData: {
+                        phoneNumber: reportData.phoneNumber,
+                        category: reportData.category
+                    },
+                    attempt: 1
+                };
+                this.sentEmails.set(emailId, emailRecord);
+            });
+
+            this.sentCount += count;
+            return results;
+
+        } catch (error) {
+            console.error('Multiple email sending error:', error);
+            throw error;
         }
     }
 
@@ -88,21 +117,19 @@ class EmailService {
             retryCount: nextAttempt - 1
         });
 
-        console.log(`Queued for retry (attempt ${nextAttempt}) in ${config.EMAIL_RETRY_DELAY * nextAttempt}ms`);
+        console.log(`Queued for retry (attempt ${nextAttempt})`);
     }
 
     async processRetryQueue() {
         const now = Date.now();
         const toRetry = [];
 
-        // Collect emails ready for retry
         for (const [id, email] of this.failedEmails.entries()) {
             if (email.retryTime <= now) {
                 toRetry.push({ id, email });
             }
         }
 
-        // Process retries
         for (const { id, email } of toRetry) {
             try {
                 console.log(`Retrying email (attempt ${email.nextAttempt})...`);
@@ -110,7 +137,6 @@ class EmailService {
                 this.failedEmails.delete(id);
             } catch (error) {
                 console.error('Retry failed:', error);
-                // Keep in queue for next retry if attempts remain
                 if (email.nextAttempt >= config.MAX_EMAIL_ATTEMPTS) {
                     this.failedEmails.delete(id);
                 }
@@ -119,7 +145,6 @@ class EmailService {
     }
 
     cleanupOldRecords() {
-        // Clean sent emails (keep last 1000)
         if (this.sentEmails.size > 1000) {
             const keys = Array.from(this.sentEmails.keys());
             for (let i = 0; i < keys.length - 1000; i++) {
@@ -127,7 +152,6 @@ class EmailService {
             }
         }
 
-        // Clean old failed emails (older than 1 hour)
         const oneHourAgo = Date.now() - 3600000;
         for (const [id, email] of this.failedEmails.entries()) {
             if (email.retryTime < oneHourAgo && email.nextAttempt >= config.MAX_EMAIL_ATTEMPTS) {
@@ -161,6 +185,12 @@ class EmailService {
 
     getFailedEmails() {
         return Array.from(this.failedEmails.values());
+    }
+
+    close() {
+        if (this.emailProvider) {
+            this.emailProvider.close();
+        }
     }
 }
 
